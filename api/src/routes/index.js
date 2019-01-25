@@ -5,5 +5,8 @@ export default class AppRouter {
         console.log(`App router`)
 
         new UserRouter(app)
+
     }
+
+
 }

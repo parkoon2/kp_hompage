@@ -24,4 +24,23 @@ export default class Auth {
 
 
     }
+
+    checkToken = (token, callback = () => { }) => {
+
+        let error = null
+
+        if (!token) {
+            error = { message: 'Token is invalid' }
+            return callback(error, null)
+        }
+
+        jwt.verify(token, SECRET, (err, decoded) => {
+            if (err) {
+                error = { message: err }
+                return callback(error, null)
+            }
+            callback(null, decoded)
+        })
+
+    }
 }
