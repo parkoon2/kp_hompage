@@ -1,5 +1,5 @@
 import UserController from './user.controller'
-export default class UserRouter {
+export default class UserRouterRouter {
     constructor(app) {
         this.app = app
         this.userController = new UserController(app)
@@ -10,6 +10,9 @@ export default class UserRouter {
 
         const app = this.app
         const controller = this.userController
+        const {
+            verify
+        } = this.userController
 
 
         /**
@@ -48,9 +51,19 @@ export default class UserRouter {
          * email (회원이메일 - Y)
          * 
          * TODO: Validation 추가해야 함
-         * 
+         * TODO: 회원가입에는 토큰이 따로 필요가 없어야 할 텐데... 아닌가? 페이지에 접근했을 때 줘야하나..?
          */
-        app.put('/user/regist', controller.regist)
+        app.post('/user/regist', controller.regist)
+
+        /**
+         * GET /user/identities
+         */
+        app.get('/user/identities', verify)
+
+        /**
+         * GET /user/identities
+         */
+        app.get('/user/identities', verify)
 
     }
 

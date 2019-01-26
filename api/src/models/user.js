@@ -27,11 +27,21 @@ export default class User {
             .catch(err => callback(err, null))
     }
 
-    findById(id = null, callback = () => { }) {
-        // var sql = "SELECT * FROM ?? WHERE ?? = ?";
-        // var inserts = ['users', 'id', userId]
-        // sql = mysql.format(sql, inserts)
+    findByEmail(email = null, callback = () => { }) {
+
         const db = this.app.db
+        let query = mysql.format(`SELECT * FROM USER WHERE USER_EMAIL = ?`, [email])
+
+        db.query(query)
+            .then(rows => callback(null, rows[0]))
+            .catch(err => callback(err, null))
+    }
+
+    findById(id = null, callback = () => { }) {
+
+        const db = this.app.db
+
+        // TODO: SELECT를 전부 해오는 건 문제가 있을까? 유저 확인은 그냥 특정 값만 있으면 되는데..
         let query = mysql.format('SELECT * FROM USER WHERE USER_ID = ?', [id])
         db.query(query)
             .then(rows => {
@@ -41,6 +51,39 @@ export default class User {
             .catch(err => {
                 callback(err, null)
             })
+    }
+
+    regist(user = {}, callback = () => { }) {
+
+        let error = null
+
+        if (!user) {
+            error = { message: 'User is not defined' }
+            return callback(error, null)
+        }
+
+        let { id, pw, name, email } = user
+
+        // 이미 등록되어 있는 회원인지 확인
+        this.findById(id, (err, user) => {
+            if (err) {
+                error = { message: err }
+                return callback(error, null)
+            }
+
+            if (user) {
+                error = { message: 'User is already registed' }
+                return callback(error, null)
+            }
+
+            let query = mysql.format(`INSERT INTO USER (USER_ID, USER_PW, USER_NAME, USER_EMAIL) VALUES (?, ?, ?, ?) `, [id, pw, name, email])
+            // INSERT INTO `student` VALUES ('2', 'leezche', '여자', '서울', '2000-10-26');
+            this.app.db.query(query)
+                .then(rows => callback(null, rows))
+                .then(err => callback(err, null))
+
+        })
+
     }
 
     login(id = null, password = null, callback = () => { }) {

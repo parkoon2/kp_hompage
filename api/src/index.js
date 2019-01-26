@@ -53,7 +53,6 @@ app.use((req, res, next) => {
 
         // req 객체서 decoded 사용할 수 있게 저장
         req.decoded = decoded
-        console.log('decoded', decoded)
         next()
     })
 })

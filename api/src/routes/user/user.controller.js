@@ -7,7 +7,7 @@ import { getIpFromRequest } from '../../utils/ip'
 
 export default class UserController {
     constructor(app) {
-        console.log('UserController', this)
+
         this.app = app
         this.userModel = new User(app)
         this.authModel = new Auth(app)
@@ -30,6 +30,31 @@ export default class UserController {
     }
     regist = (req, res) => {
         const { id, pw, name, email } = req.body
+
+        if (!id || !pw || !name || !email) {
+            return res.status(404).json({
+                message: 'Invaild properties'
+            })
+        }
+        let user = {
+            id,
+            pw: crypto.createHash('sha512').update(pw).digest('hex'),
+            name,
+            email
+        }
+
+        this.userModel.regist(user, (err, result) => {
+            if (err) {
+                return res.status(404).json(err)
+            }
+
+            delete user.pw
+            user.message = result
+
+            res.status(200).json(user)
+        })
+
+        // res.send('개발 진행 중')
     }
     update = (req, res) => {
 
@@ -40,7 +65,7 @@ export default class UserController {
 
         // 패스워드 암호화, pw undefined 인 경우 crypto 에서 에러 발생
         if (pw) {
-            pw = crypto.createHash('sha512').update(undefined).digest('hex')
+            pw = crypto.createHash('sha512').update(pw).digest('hex')
         }
 
         let updatedUser = {
@@ -91,6 +116,64 @@ export default class UserController {
                 res.status(200).json(result)
             })
         })
+    }
+
+    verify = (req, res) => {
+
+        let { id, email } = req.query
+
+        // 중복확인은 아이디 또는 이메일 한 개만
+        if (Object.keys(req.query).length > 1) {
+            return res.status(404).json({ message: 'Just 1 property is available (id or email)' })
+        }
+
+
+        // email 중복확인
+        if (email) {
+            this.userModel.findByEmail(email, (err, result) => {
+
+                if (err) return res.status(404).json(err)
+
+                // 이미 등록되어 있는 이메일
+                if (result) {
+                    return res.stats(409).json({
+                        message: 'Email is already registed'
+                    })
+                }
+
+                return res.status(200).json({
+                    message: 'This email is available for registration'
+                })
+
+            })
+
+        }
+        // 아이디 중복확인
+        else if (id) {
+
+            this.userModel.findById(id, (err, result) => {
+
+                if (err) return res.status(404).json(err)
+
+                // 이미 등록되어 있는 아이디
+                if (result) {
+                    return res.stats(409).json({
+                        message: 'ID is already registed'
+                    })
+                }
+
+                return res.status(200).json({
+                    message: 'This id is available for registration'
+                })
+            })
+        }
+        // 그 이외에 파라미터
+        else {
+
+            return res.status(404).json({
+                message: 'Query is invaild'
+            })
+        }
     }
 
 }
